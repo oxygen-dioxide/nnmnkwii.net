@@ -17,11 +17,11 @@ jobs:
             arch: linux-x64
           
     steps:
-    - uses: actions/checkout@v1
-
     - name: autocrlf
       if: ${{ matrix.os.arch == 'win-x64' }}
-      run: git config core.autocrlf
+      run: git config --global core.autocrlf false
+      
+    - uses: actions/checkout@v1
 
     - name: restore
       run: dotnet restore nnmnkwii.tests -r ${{ matrix.os.arch }}
