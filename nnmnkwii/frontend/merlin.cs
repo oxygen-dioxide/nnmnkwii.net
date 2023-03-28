@@ -9,6 +9,8 @@ using nnmnkwii.io.hts;
 //reference: https://github.com/r9y9/nnmnkwii/blob/master/nnmnkwii/frontend/merlin.py
 
 namespace nnmnkwii.frontend {
+    public enum SubphoneFeatures { none, full, state_only, frame_only, uniform_state, minimal_phoneme, coarse_coding }
+
     public enum FeatureType {binary, numerical}
 
     public enum UnitSize {phoneme, state}
@@ -16,26 +18,20 @@ namespace nnmnkwii.frontend {
     public enum FeatureSize {phoneme, frame}
 
     public class merlin {
-        //TODO:Should subphone_features be an enum?
-        static Dictionary<string, int> frame_feature_size_dict = new Dictionary<string, int>
+        static Dictionary<SubphoneFeatures, int> frame_feature_size_dict = new Dictionary<SubphoneFeatures, int>
         {
-            {"full",9},
-            {"state_only",1 },
-            {"frame_only",1 },
-            {"uniform_state",2 },
-            {"minimal_phoneme",3 },
-            {"coarse_coding",4 },
+            {SubphoneFeatures.none, 0},
+            {SubphoneFeatures.full, 9},
+            {SubphoneFeatures.state_only,1 },
+            {SubphoneFeatures.frame_only,1 },
+            {SubphoneFeatures.uniform_state,2 },
+            {SubphoneFeatures.minimal_phoneme,3 },
+            {SubphoneFeatures.coarse_coding,4 },
         };
 
-        public static int get_frame_feature_size(string subphone_features = "full") {
-            if (subphone_features == null) {
-                return 0;
-            }
-            subphone_features = subphone_features.Trim().ToLower();
-            if (subphone_features == "none") {
-                //TODO:raise ValueError("subphone_features = 'none' is deprecated, use None instead")
-                throw new Exception("subphone_features = 'none' is deprecated, use None instead");
-            }
+        public static int get_frame_feature_size(
+            SubphoneFeatures subphone_features = SubphoneFeatures.full
+        ) {
             if (frame_feature_size_dict.TryGetValue(subphone_features, out var result)) {
                 return result;
             } else {
@@ -104,7 +100,7 @@ namespace nnmnkwii.frontend {
             HTSLabelFile hts_labels,
             Dictionary<int, Tuple<string, List<Regex>>> binary_dict,
             Dictionary<int, Tuple<string, Regex>> numeric_dict,
-            string subphone_features = null,
+            SubphoneFeatures subphone_features = SubphoneFeatures.none,
             bool add_frame_features = false,
             int frame_shift = 50000
         ) {
@@ -123,7 +119,7 @@ namespace nnmnkwii.frontend {
 
             //matrix size: tCount*dimension
             var label_feature_matrix = np.zeros<float>(tCount, featuresDim);
-            if (subphone_features == "coarse_coding") {
+            if (subphone_features == SubphoneFeatures.coarse_coding) {
                 throw new NotImplementedException();
                 //TODO:compute_coarse_coding_features()
             }
@@ -146,7 +142,7 @@ namespace nnmnkwii.frontend {
                     var current_block_binary_array = np.ones<float>(
                         new int[]{ frame_number, 1 }
                         ).dot(label_vector[Slice.NewAxis, Slice.All]);
-                    if (subphone_features == "minimal_phoneme")
+                    if (subphone_features == SubphoneFeatures.minimal_phoneme)
                     {
                         //features which distinguish frame position in phoneme
                         //fraction through phone forwards
@@ -156,7 +152,7 @@ namespace nnmnkwii.frontend {
                         current_block_binary_array[Slice.All, dict_size + 1] = 1 + 1 / frame_number - frForward;
                         //phone duration
                         current_block_binary_array[Slice.All, dict_size + 2] = frame_number;
-                    } else if(subphone_features == "coarse_coding")
+                    } else if(subphone_features == SubphoneFeatures.coarse_coding)
                     {
                         /*TODO
                         //features which distinguish frame position in phoneme
@@ -165,7 +161,7 @@ namespace nnmnkwii.frontend {
                         current_block_binary_array[i, dict_size + 1] = cc_feat_matrix[i, 1];
                         current_block_binary_array[i, dict_size + 2] = cc_feat_matrix[i, 2];
                         current_block_binary_array[i, dict_size + 3] = frame_number;*/
-                    } else if (String.IsNullOrEmpty(subphone_features))
+                    } else if (subphone_features == SubphoneFeatures.none)
                     {
 
                     }
@@ -178,7 +174,7 @@ namespace nnmnkwii.frontend {
                         new Slice(label_feature_index, label_feature_index + frame_number), Slice.All
                         ] = current_block_binary_array;
                     label_feature_index = label_feature_index + frame_number;
-                } else if (subphone_features == null) {
+                } else if (subphone_features == SubphoneFeatures.none) {
                     label_feature_matrix[phonemeId] = label_vector;
                 }
             }
@@ -198,7 +194,7 @@ namespace nnmnkwii.frontend {
             HTSLabelFile hts_labels,
             Dictionary<int, Tuple<string, List<Regex>>> binary_dict,
             Dictionary<int, Tuple<string, Regex>> numeric_dict,
-            string subphone_features = null,
+            SubphoneFeatures subphone_features = SubphoneFeatures.none,
             bool add_frame_features = false,
             int frame_shift = 50000
             ) {
