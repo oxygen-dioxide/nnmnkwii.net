@@ -17,6 +17,10 @@ jobs:
             arch: linux-x64
           
     steps:
+    - name: autocrlf
+      if: ${{ matrix.os.arch == 'win-x64' }}
+      run: git config --global core.autocrlf false
+      
     - uses: actions/checkout@v1
 
     - name: restore
