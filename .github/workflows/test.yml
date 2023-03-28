@@ -19,6 +19,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    - name: autocrlf
+      run: git config core.autocrlf
+
     - name: restore
       run: dotnet restore nnmnkwii.tests -r ${{ matrix.os.arch }}
 
