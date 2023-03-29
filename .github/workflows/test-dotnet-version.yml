@@ -37,6 +37,9 @@ jobs:
       with:
         dotnet-version: ${{ matrix.net.dotnet-version }}
     
+    - name: install python dependencies
+      run: pip install -r tools/requirements.txt
+    
     - name: set dotnet version
       run: python tools/setversion.py nnmnkwii.tests/nnmnkwii.tests.csproj -f ${{ matrix.net.target-framework }}
 
