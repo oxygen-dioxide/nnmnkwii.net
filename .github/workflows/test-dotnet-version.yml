@@ -1,0 +1,46 @@
+on:
+  workflow_dispatch:
+    inputs: {}
+
+jobs:
+  test-across-dotnet-versions:
+    runs-on: ${{ matrix.os.runs-on }}
+
+    strategy:
+      matrix:
+        os: 
+          - runs-on: windows-latest
+            arch: win-x64
+          - runs-on: macos-latest
+            arch: osx-x64
+          - runs-on: ubuntu-latest
+            arch: linux-x64
+        net:
+          - dotnet-version: "7.x"
+            target-framework: net7.0
+          - dotnet-version: "6.x"
+            target-framework: net6.0
+          - dotnet-version: "5.x"
+            target-framework: net5.0
+          - dotnet-version: "3.x"
+            target-framework: netcoreapp3.1
+          
+    steps:
+    - name: autocrlf
+      if: ${{ matrix.os.arch == 'win-x64' }}
+      run: git config --global core.autocrlf false
+      
+    - uses: actions/checkout@v1
+
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ matrix.net.dotnet-version }}
+    
+    - name: set dotnet version
+      run: python tools/setversion.py nnmnkwii.tests/nnmnkwii.tests.csproj -f ${{ matrix.net.target-framework }}
+
+    - name: restore
+      run: dotnet restore nnmnkwii.tests -r ${{ matrix.os.arch }}
+
+    - name: unit test
+      run: dotnet test nnmnkwii.tests
