@@ -69,7 +69,9 @@ jobs:
       run: pip3 install -r tools/requirements.txt
     
     - name: set reference version
-      run: python3 tools/setversion.py nnmnkwii.tests/nnmnkwii.tests.csproj -r NumSharp=${{ matrix.reference }}
+      run: |
+        python3 tools/setversion.py nnmnkwii.tests/nnmnkwii.tests.csproj -r NumSharp=${{ matrix.reference }}
+        python3 tools/setversion.py nnmnkwii.tests/nnmnkwii.csproj -r NumSharp=${{ matrix.reference }}
 
     - name: restore
       run: dotnet restore nnmnkwii.tests -r ${{ matrix.os.arch }}
